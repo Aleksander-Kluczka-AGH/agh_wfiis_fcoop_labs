@@ -1,15 +1,17 @@
-## Podstawy Programowania Obiektowego
+# Fundamental concepts of object-oriented programming
 
-Kod napisany na laby u EOM. Korzystalismy z serwisu `repl.it`.
-Semestr 3, rok 2020.
+Code written for Applied Computer Science **Fundamental concepts of object-oriented programming** course at [AGH UST](https://www.agh.edu.pl/en) [WFiIS](https://www.fis.agh.edu.pl/en/).
 
-### przydatne pliki
+Semester `3`, year `2020`.
+
+## Tools used during the course
 
 `clean.sh`:
+
 ```bash
 #!/bin/bash
-# Czyszczenie wszystkich plikow z wyjatkiem pliku skryptu i Makefile
-read -p "Usunac wszystkie pliki? (t/n): " answer
+# Clean up all files except this script and Makefile
+read -p "Clean up all? (t/n): " answer
 shopt -s extglob;
 if [ "$answer" = "t" ]; 
   then rm -rv !(@(clean.sh|Makefile))
@@ -17,6 +19,7 @@ fi
 ```
 
 `Makefile`:
+
 ```make
 CXX = g++
 EXEC = main
@@ -42,29 +45,59 @@ check:
 ```
 
 `CMakeLists.txt`:
-```
-#ustawienie wersji CMake
+
+```cmake
 cmake_minimum_required(VERSION 3.10)
 
-#nazwa projektu
-project(lab_ppo)
+PROJECT(cpp_project)
 
-# dodanie pliku wykonywalnego
-add_executable(Main main.cpp)
+# Setting up the C++ compilation flags
+SET(CMAKE_CXX_FLAGS "-Wall -g -pedantic")
 
-#w przypadku kilku plików źródłowych
-#add_executable(Main main.cpp test.cpp files.cpp)
+# Setting up C++ standard
+SET(CMAKE_CXX_STANDARD 17)
+SET(CMAKE_CXX_STANDARD_REQUIRED True)
 
-#ustawienie flag podczas kompilacji
-set (CMAKE_CXX_FLAGS "-Wall -g")
+SET(CMAKE_COLOR_MAKEFILE True)
 
-# ustawienie standardu C++
-set(CMAKE_CXX_STANDARD 11)
-set(CMAKE_CXX_STANDARD_REQUIRED True)
+# Searching for all header files in directory tree
+MACRO(HEADER_DIRECTORIES return_list)
+    FILE(GLOB_RECURSE new_list *.h)
+    SET(dir_list "")
+    FOREACH(file_path ${new_list})
+        GET_FILENAME_COMPONENT(dir_path ${file_path} PATH)
+        SET(dir_list ${dir_list} ${dir_path})
+    ENDFOREACH()
+    LIST(REMOVE_DUPLICATES dir_list)
+    SET(${return_list} ${dir_list})
+ENDMACRO()
 
-#definiowanie zmiennych
-set(SOURCES main.cpp test.cpp files.cpp)
-add_executable(Main ${SOURCES})
+HEADER_DIRECTORIES(header_dir_list)
+
+LIST(LENGTH header_dir_list header_dir_list_count)
+
+IF(header_dir_list_count GREATER 0)
+	MESSAGE(STATUS "[INFO] Found ${header_dir_list_count} header directories: ")
+	MESSAGE(STATUS "[INFO] ${header_dir_list}")
+ELSE()
+	MESSAGE(STATUS "[INFO] Found ${header_dir_list_count} header directories")
+ENDIF()
+
+INCLUDE_DIRECTORIES(${header_dir_list}) # Recursive
+
+# Gathering all .cpp files required to compile the program
+FILE(GLOB_RECURSE SOURCES "*.cpp")
+
+# This line is actually very cursed, but essentially it removes cmake generated .cpp file
+# containing repetition of main() function, which allows successfull compilation
+LIST(REMOVE_AT SOURCES 0)
+
+# Adding obtained .cpp files to the project
+add_executable (output ${SOURCES})
+
+# The end of CMakeLists.txt file
 ```
 
-Caveat emptor.
+## License
+
+Sources are licensed under MIT, a free and open-source license. For details, please see [the license file](LICENSE.md).
